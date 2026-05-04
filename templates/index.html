@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MusicFinder - Hệ CSDL Tìm Kiếm Âm Nhạc</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    :root {
+      --bg: #07071a;
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --purple: #8b5cf6;
+      --cyan: #06b6d4;
+      --green: #10b981;
+      --text: #f1f5f9;
+      --muted: #64748b
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 20% -10%, rgba(139, 92, 246, 0.15), transparent), radial-gradient(ellipse 60% 40% at 80% 110%, rgba(6, 182, 212, 0.1), transparent);
+      pointer-events: none;
+      z-index: 0
+    }
+
+    /* HEADER */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px)
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px
+    }
+
+    .logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c4b5fd, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .logo p {
+      font-size: 0.72rem;
+      color: var(--muted)
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 24px
+    }
+
+    .stat {
+      text-align: center
+    }
+
+    .stat-val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--purple)
+    }
+
+    .stat-lbl {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    /* MAIN */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px
+    }
+
+    /* UPLOAD ZONE */
+    .upload-section {
+      text-align: center;
+      margin-bottom: 48px
+    }
+
+    .upload-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff, #c4b5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .upload-sub {
+      color: var(--muted);
+      margin-bottom: 32px;
+      font-size: .95rem
+    }
+
+    #dropzone {
+      border: 2px dashed rgba(139, 92, 246, 0.4);
+      border-radius: 20px;
+      padding: 56px 40px;
+      cursor: pointer;
+      transition: all .3s;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden
+    }
+
+    #dropzone:hover,
+    #dropzone.drag-over {
+      border-color: var(--purple);
+      background: rgba(139, 92, 246, 0.08);
+      transform: scale(1.01)
+    }
+
+    .wave-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 4px;
+      height: 60px;
+      margin-bottom: 20px
+    }
+
+    .wave-bar {
+      width: 6px;
+      background: linear-gradient(to top, var(--purple), var(--cyan));
+      border-radius: 3px;
+      animation: wave 1.4s ease-in-out infinite
+    }
+
+    .wave-bar:nth-child(2) {
+      animation-delay: .1s;
+      height: 35%
+    }
+
+    .wave-bar:nth-child(3) {
+      animation-delay: .2s;
+      height: 70%
+    }
+
+    .wave-bar:nth-child(4) {
+      animation-delay: .3s;
+      height: 50%
+    }
+
+    .wave-bar:nth-child(5) {
+      animation-delay: .4s;
+      height: 90%
+    }
+
+    .wave-bar:nth-child(6) {
+      animation-delay: .5s;
+      height: 60%
+    }
+
+    .wave-bar:nth-child(7) {
+      animation-delay: .4s;
+      height: 40%
+    }
+
+    .wave-bar:nth-child(8) {
+      animation-delay: .3s;
+      height: 75%
+    }
+
+    .wave-bar:nth-child(9) {
+      animation-delay: .2s;
+      height: 55%
+    }
+
+    .wave-bar:nth-child(10) {
+      animation-delay: .1s;
+      height: 30%
+    }
+
+    @keyframes wave {
+
+      0%,
+      100% {
+        transform: scaleY(0.4)
+      }
+
+      50% {
+        transform: scaleY(1)
+      }
+    }
+
+    .drop-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #a78bfa;
+      margin-bottom: 6px
+    }
+
+    .drop-sub {
+      font-size: .82rem;
+      color: var(--muted)
+    }
+
+    #fileInput {
+      display: none
+    }
+
+    .btn-upload {
+      margin-top: 20px;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      border: none;
+      color: #fff;
+      padding: 12px 32px;
+      border-radius: 50px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .3s;
+      letter-spacing: .03em
+    }
+
+    .btn-upload:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4)
+    }
+
+    #file-name {
+      margin-top: 14px;
+      font-size: .85rem;
+      color: var(--green);
+      font-weight: 500;
+      min-height: 20px
+    }
+
+    /* LOADING */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 48px
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 3px solid rgba(139, 92, 246, 0.2);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .loading-text {
+      color: var(--muted);
+      font-size: .95rem
+    }
+
+    .loading-sub {
+      color: #6d28d9;
+      font-size: .8rem;
+      margin-top: 6px
+    }
+
+    /* RESULTS */
+    #results {
+      display: none
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: gap
+    }
+
+    .result-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .meta-tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px
+    }
+
+    .tag {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: .75rem;
+      color: var(--muted)
+    }
+
+    .tag span {
+      color: var(--cyan);
+      font-weight: 600
+    }
+
+    /* QUERY PLAYER */
+    .query-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05));
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 28px
+    }
+
+    .query-label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--purple);
+      font-weight: 600;
+      margin-bottom: 8px
+    }
+
+    .query-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 14px
+    }
+
+    /* AUDIO PLAYER */
+    .player {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .play-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--cyan));
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      flex-shrink: 0;
+      transition: transform .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .play-btn:hover {
+      transform: scale(1.1)
+    }
+
+    .progress-wrap {
+      flex: 1;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      border-radius: 3px;
+      width: 0%;
+      transition: width .1s linear
+    }
+
+    .time-display {
+      font-size: .75rem;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 70px;
+      text-align: right
+    }
+
+    .hidden-audio {
+      display: none
+    }
+
+    /* RESULT CARDS */
+    .results-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all .3s;
+      animation: fadeUp .4s ease both
+    }
+
+    .result-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      background: rgba(139, 92, 246, 0.05);
+      transform: translateX(4px)
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .result-card:nth-child(1) {
+      animation-delay: .05s
+    }
+
+    .result-card:nth-child(2) {
+      animation-delay: .1s
+    }
+
+    .result-card:nth-child(3) {
+      animation-delay: .15s
+    }
+
+    .result-card:nth-child(4) {
+      animation-delay: .2s
+    }
+
+    .result-card:nth-child(5) {
+      animation-delay: .25s
+    }
+
+    .result-card.top1 {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.04)
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px
+    }
+
+    .rank-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      font-weight: 700;
+      flex-shrink: 0
+    }
+
+    .rank-1 {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff
+    }
+
+    .rank-2 {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: #fff
+    }
+
+    .rank-3 {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff
+    }
+
+    .rank-4,
+    .rank-5 {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted)
+    }
+
+    .card-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .card-filename {
+      font-size: .9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .card-meta {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .sim-section {
+      margin-bottom: 14px
+    }
+
+    .sim-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 5px
+    }
+
+    .sim-label strong {
+      color: var(--cyan)
+    }
+
+    .sim-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 3px
+    }
+
+    .sim-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease
+    }
+
+    /* STEP CHART */
+    .step-section {
+      border-top: 1px solid var(--border);
+      padding-top: 12px
+    }
+
+    .step-toggle {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: .75rem;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .2s
+    }
+
+    .step-toggle:hover {
+      color: var(--cyan)
+    }
+
+    .step-toggle .arrow {
+      transition: transform .3s;
+      display: inline-block
+    }
+
+    .step-toggle.open .arrow {
+      transform: rotate(90deg)
+    }
+
+    .step-chart-wrap {
+      display: none;
+      margin-top: 12px
+    }
+
+    .step-chart-wrap.open {
+      display: block
+    }
+
+    .step-info {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    .step-info b {
+      color: #a78bfa
+    }
+
+    svg.step-chart {
+      display: block;
+      width: 100%;
+      overflow: visible
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: .85rem;
+      display: none;
+      z-index: 999;
+      backdrop-filter: blur(10px)
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎵</div>
+      <div>
+        <h1>MusicFinder</h1>
+        <p>Hệ CSDL Lưu Trữ & Tìm Kiếm Bản Nhạc</p>
+      </div>
+    </div>
+    <!-- <div class="stats-bar">
+    <div class="stat"><div class="stat-val" id="s-songs">...</div><div class="stat-lbl">Bài nhạc</div></div>
+    <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Đặc trưng</div></div>
+    <div class="stat"><div class="stat-val">SQLite</div><div class="stat-lbl">CSDL</div></div>
+  </div> -->
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <h2 class="upload-title">Tìm Kiếm Bản Nhạc</h2>
+      <p class="upload-sub">Upload một đoạn nhạc .wav — hệ thống sẽ tìm 5 bản nhạc giống nhất trong CSDL</p>
+
+      <div id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div class="wave-bars">
+          <div class="wave-bar" style="height:40%"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <p class="drop-text">Kéo & thả file nhạc vào đây</p>
+        <p class="drop-sub">hoặc click để chọn file (.wav)</p>
+        <input type="file" id="fileInput" accept=".wav,audio/*">
+      </div>
+
+      <div id="file-name"></div>
+      <button class="btn-upload" id="btn-search" style="display:none" onclick="doSearch()">
+        🔍 &nbsp;Bắt đầu tìm kiếm
+      </button>
+    </section>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p class="loading-text">Đang phân tích và tìm kiếm...</p>
+      <p class="loading-sub">Trích xuất 6 đặc trưng · Sliding Window · Manhattan Distance</p>
+    </div>
+
+    <section id="results">
+      <div class="result-header">
+        <div>
+          <div class="result-title">🏆 Top 5 Kết Quả</div>
+          <div class="meta-tags" id="meta-tags"></div>
+        </div>
+      </div>
+
+      <div class="query-card">
+        <div class="query-label">📂 File truy vấn</div>
+        <div class="query-name" id="query-name"></div>
+        <div class="player" id="query-player"></div>
+      </div>
+
+      <div class="results-grid" id="results-grid"></div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    // ── Drag & Drop ──────────────────────────────
+    let selectedFile = null;
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f) setFile(f);
+    });
+    document.getElementById('fileInput').addEventListener('change', e => {
+      if (e.target.files[0]) setFile(e.target.files[0]);
+    });
+    function setFile(f) {
+      selectedFile = f;
+      document.getElementById('file-name').textContent = '✅  ' + f.name + '  (' + (f.size / 1024).toFixed(1) + ' KB)';
+      document.getElementById('btn-search').style.display = 'inline-block';
+      document.getElementById('results').style.display = 'none';
+    }
+
+    // ── Search ───────────────────────────────────
+    async function doSearch() {
+      if (!selectedFile) return;
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('btn-search').disabled = true;
+
+      const fd = new FormData();
+      fd.append('audio', selectedFile);
+      try {
+        const res = await fetch('/api/search', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderResults(data);
+      } catch (e) {
+        showToast('Lỗi: ' + e.message);
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('btn-search').disabled = false;
+      }
+    }
+
+    // ── Render Results ───────────────────────────
+    function renderResults(data) {
+      // meta tags
+      document.getElementById('meta-tags').innerHTML =
+        `<div class="tag">⏱ Thời gian: <span>${data.time}s</span></div>
+     <div class="tag">🗄 Đã so sánh: <span>${data.compared} bài</span></div>
+     <div class="tag">📐 Thuật toán: <span>Sliding Window + Manhattan</span></div>`;
+
+      // query player
+      document.getElementById('query-name').textContent = data.query;
+      document.getElementById('query-player').innerHTML =
+        buildPlayer('/serve/query/' + data.query, 'qp');
+
+      // result cards
+      const grid = document.getElementById('results-grid');
+      grid.innerHTML = '';
+      data.results.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'result-card' + (r.rank === 1 ? ' top1' : '');
+
+        const barColor = r.rank === 1
+          ? 'linear-gradient(90deg,#10b981,#059669)'
+          : r.rank <= 3
+            ? 'linear-gradient(90deg,var(--purple),var(--cyan))'
+            : 'linear-gradient(90deg,#475569,#334155)';
+
+        card.innerHTML = `
+      <div class="card-top">
+        <div class="rank-badge rank-${r.rank}">${r.rank === 1 ? '🥇' : '#' + r.rank}</div>
+        <div class="card-info">
+          <div class="card-filename" title="${r.filename}">${r.filename}</div>
+          <div class="card-meta">${r.total_steps} bước trượt Sliding Window</div>
+        </div>
+        <div class="dist-box" style="text-align:right;flex-shrink:0">
+          <div style="font-size:1.1rem;font-weight:700;color:${r.rank === 1 ? 'var(--green)' : '#a78bfa'}">${r.distance}</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:1px">Khoảng cách Manhattan</div>
+        </div>
+      </div>
+      <div class="sim-section">
+        <div class="sim-label">
+          <span>Thứ hạng tương đồng trong Top 5</span>
+          <strong style="color:${r.rank === 1 ? 'var(--green)' : 'var(--cyan)'}">Hạng ${r.rank} / 5</strong>
+        </div>
+      </div>
+      <div class="player" style="margin-bottom:14px">
+        ${buildPlayer('/serve/' + r.path, 'p' + r.rank)}
+      </div>
+      <div class="step-section">
+        <button class="step-toggle" onclick="toggleStep(this)">
+          <span class="arrow">▶</span> Kết quả trung gian – Sliding Window (${r.total_steps} bước)
+        </button>
+        <div class="step-chart-wrap">
+          <div class="step-info">
+            Mỗi cột = khoảng cách Manhattan tại 1 bước trượt &nbsp;·&nbsp;
+            <b>Cột xanh = bước tốt nhất (step ${r.min_step + 1})</b> &nbsp;·&nbsp;
+            Khoảng cách nhỏ nhất = <b>${r.distance}</b>
+          </div>
+          ${buildStepChart(r.steps, r.min_step)}
+        </div>
+      </div>`;
+        grid.appendChild(card);
+      });
+
+      document.getElementById('results').style.display = 'block';
+
+      // animate bars
+      setTimeout(() => {
+        document.querySelectorAll('.sim-bar-fill').forEach(el => {
+          el.style.width = el.dataset.w + '%';
+        });
+      }, 100);
+
+      initPlayers();
+    }
+
+    // ── Step chart ──────────────────────────────
+    function buildStepChart(steps, minIdx) {
+      const W = 600, H = 60, bw = Math.max(3, Math.floor(W / (steps.length + 1)) - 1);
+      const maxV = Math.max(...steps) || 1;
+      let bars = '';
+      steps.forEach((v, i) => {
+        const bh = Math.max(3, (v / maxV) * H);
+        const x = i * (bw + 1);
+        const fill = i === minIdx ? '#10b981' : 'rgba(139,92,246,0.6)';
+        bars += `<rect x="${x}" y="${H - bh}" width="${bw}" height="${bh}" fill="${fill}" rx="1.5"/>`;
+      });
+      return `<svg viewBox="0 0 ${steps.length * (bw + 1)} ${H}" class="step-chart" style="height:60px">${bars}</svg>`;
+    }
+
+    function toggleStep(btn) {
+      btn.classList.toggle('open');
+      btn.nextElementSibling.classList.toggle('open');
+    }
+
+    // ── Audio Player ─────────────────────────────
+    function buildPlayer(src, id) {
+      return `
+    <button class="play-btn" id="pb-${id}" onclick="togglePlay('${id}')">▶</button>
+    <div class="progress-wrap" id="pw-${id}" onclick="seekAudio(event,'${id}')">
+      <div class="progress-fill" id="pf-${id}"></div>
+    </div>
+    <span class="time-display" id="td-${id}">0:00 / 0:00</span>
+    <audio id="au-${id}" class="hidden-audio" src="${src}" preload="metadata"></audio>`;
+    }
+
+    function initPlayers() {
+      document.querySelectorAll('.hidden-audio').forEach(au => {
+        const id = au.id.replace('au-', '');
+        au.addEventListener('timeupdate', () => updateProgress(id));
+        au.addEventListener('ended', () => resetPlayer(id));
+        au.addEventListener('loadedmetadata', () => updateProgress(id));
+      });
+    }
+
+    function togglePlay(id) {
+      const au = document.getElementById('au-' + id);
+      const btn = document.getElementById('pb-' + id);
+      if (au.paused) {
+        document.querySelectorAll('.hidden-audio').forEach(a => { if (a !== au) { a.pause(); resetPlayer(a.id.replace('au-', '')); } });
+        au.play(); btn.textContent = '⏸';
+      } else {
+        au.pause(); btn.textContent = '▶';
+      }
+    }
+
+    function updateProgress(id) {
+      const au = document.getElementById('au-' + id);
+      if (!au || !au.duration) return;
+      const pct = (au.currentTime / au.duration * 100).toFixed(1);
+      document.getElementById('pf-' + id).style.width = pct + '%';
+      document.getElementById('td-' + id).textContent = fmt(au.currentTime) + ' / ' + fmt(au.duration);
+    }
+
+    function seekAudio(e, id) {
+      const au = document.getElementById('au-' + id);
+      const pw = document.getElementById('pw-' + id);
+      const r = pw.getBoundingClientRect();
+      au.currentTime = ((e.clientX - r.left) / r.width) * au.duration;
+    }
+
+    function resetPlayer(id) {
+      document.getElementById('pb-' + id).textContent = '▶';
+      document.getElementById('pf-' + id).style.width = '0%';
+    }
+
+    function fmt(s) {
+      const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ── Toast ────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 4000);
+    }
+
+    // ── Init ─────────────────────────────────────
+    fetch('/api/stats').then(r => r.json()).then(d => {
+      document.getElementById('s-songs').textContent = d.total;
+    });
+  </script>
+</body>
+
+</html>
