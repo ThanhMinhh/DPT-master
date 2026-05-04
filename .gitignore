@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
 query/
-database.db
+
 audio/
 .env
 .vscode/
