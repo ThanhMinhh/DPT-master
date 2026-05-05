@@ -37,30 +37,39 @@ def search_songs(q_sound, sounds, k=5):
             iS = i * overlap
             seg = feaS[iS: iS + len(feaW)]
             if len(seg) < len(feaW): break
-            per_frame = np.array([np.sum(np.abs(feaW[f] - seg[f])) for f in range(len(feaW))])
-            dists.append(float(np.median(per_frame)))
-        if not dists: dists = [float('inf')]
-        similarity[sound.path] = float(np.min(dists))
+            
+            # Cosine Similarity
+            v1 = feaW.flatten()
+            v2 = seg.flatten()
+            norm1 = np.linalg.norm(v1)
+            norm2 = np.linalg.norm(v2)
+            if norm1 == 0 or norm2 == 0:
+                cos_sim = 0.0
+            else:
+                cos_sim = np.dot(v1, v2) / (norm1 * norm2)
+                
+            dists.append(float(cos_sim))
+            
+        if not dists: dists = [0.0]
+        similarity[sound.path] = float(np.max(dists))
         step_data[sound.path] = [round(v, 4) for v in dists[:60]]
 
-    sorted_sim = sorted(similarity.items(), key=lambda x: x[1])
+    # Sắp xếp giảm dần (Cosine cao nhất lên đầu)
+    sorted_sim = sorted(similarity.items(), key=lambda x: x[1], reverse=True)
     top5 = sorted_sim[:k]
 
-    # Normalize against GLOBAL max distance (all 500 songs) for meaningful percentages
-    global_max = max(similarity.values()) or 1.0
-
     results = []
-    for rank, (path, dist) in enumerate(top5, 1):
+    for rank, (path, score) in enumerate(top5, 1):
         steps = step_data[path]
-        sim_pct = round((1 - dist / global_max) * 100, 1)
+        sim_pct = round(score * 100, 1)
         results.append({
             'rank': rank,
             'path': path,
             'filename': os.path.basename(path),
-            'distance': round(dist, 6),
+            'score': round(score, 6),
             'sim_bar': max(sim_pct, 0.0),
             'steps': steps,
-            'min_step': int(np.argmin(steps)),
+            'max_step': int(np.argmax(steps)),
             'total_steps': len(steps)
         })
     return results

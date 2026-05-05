@@ -67,8 +67,8 @@ def plot_all_6_features(audio_path1, audio_path2):
     print("Ve thanh cong! Hay mo file 'toan_bo_6_dac_trung.png' ra xem nhe.")
 
 # Chọn 2 bài bất kỳ trong CSDL để test
-file_truy_van = "audio/track_10s_001_classical.00012.wav" 
-file_csdl = "audio/track_10s_004_classical.00051.wav"
+file_truy_van = "query/Nà ná na na .mp3" 
+file_csdl = "audio/track_15s_176_jazz.00088.wav"
 
 if os.path.exists(file_truy_van) and os.path.exists(file_csdl):
     plot_all_6_features(file_truy_van, file_csdl)

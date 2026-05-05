@@ -767,7 +767,7 @@
       document.getElementById('meta-tags').innerHTML =
         `<div class="tag">⏱ Thời gian: <span>${data.time}s</span></div>
      <div class="tag">🗄 Đã so sánh: <span>${data.compared} bài</span></div>
-     <div class="tag">📐 Thuật toán: <span>Sliding Window + Manhattan</span></div>`;
+     <div class="tag">📐 Thuật toán: <span>Sliding Window + Cosine Similarity</span></div>`;
 
       // query player
       document.getElementById('query-name').textContent = data.query;
@@ -795,8 +795,8 @@
           <div class="card-meta">${r.total_steps} bước trượt Sliding Window</div>
         </div>
         <div class="dist-box" style="text-align:right;flex-shrink:0">
-          <div style="font-size:1.1rem;font-weight:700;color:${r.rank === 1 ? 'var(--green)' : '#a78bfa'}">${r.distance}</div>
-          <div style="font-size:.68rem;color:var(--muted);margin-top:1px">Khoảng cách Manhattan</div>
+          <div style="font-size:1.1rem;font-weight:700;color:${r.rank === 1 ? 'var(--green)' : '#a78bfa'}">${r.score}</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:1px">Cosine Similarity</div>
         </div>
       </div>
       <div class="sim-section">
@@ -814,11 +814,11 @@
         </button>
         <div class="step-chart-wrap">
           <div class="step-info">
-            Mỗi cột = khoảng cách Manhattan tại 1 bước trượt &nbsp;·&nbsp;
-            <b>Cột xanh = bước tốt nhất (step ${r.min_step + 1})</b> &nbsp;·&nbsp;
-            Khoảng cách nhỏ nhất = <b>${r.distance}</b>
+            Mỗi cột = điểm Cosine tại 1 bước trượt &nbsp;·&nbsp;
+            <b>Cột xanh = bước tốt nhất (step ${r.max_step + 1})</b> &nbsp;·&nbsp;
+            Điểm Cosine lớn nhất = <b>${r.score}</b>
           </div>
-          ${buildStepChart(r.steps, r.min_step)}
+          ${buildStepChart(r.steps, r.max_step)}
         </div>
       </div>`;
         grid.appendChild(card);
@@ -837,14 +837,14 @@
     }
 
     // ── Step chart ──────────────────────────────
-    function buildStepChart(steps, minIdx) {
+    function buildStepChart(steps, maxIdx) {
       const W = 600, H = 60, bw = Math.max(3, Math.floor(W / (steps.length + 1)) - 1);
       const maxV = Math.max(...steps) || 1;
       let bars = '';
       steps.forEach((v, i) => {
         const bh = Math.max(3, (v / maxV) * H);
         const x = i * (bw + 1);
-        const fill = i === minIdx ? '#10b981' : 'rgba(139,92,246,0.6)';
+        const fill = i === maxIdx ? '#10b981' : 'rgba(139,92,246,0.6)';
         bars += `<rect x="${x}" y="${H - bh}" width="${bw}" height="${bh}" fill="${fill}" rx="1.5"/>`;
       });
       return `<svg viewBox="0 0 ${steps.length * (bw + 1)} ${H}" class="step-chart" style="height:60px">${bars}</svg>`;
